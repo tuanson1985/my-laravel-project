@@ -8,7 +8,7 @@ Route::get('/ajax/csrf/token36', function () {
 });
 
 
-Route::group(['prefix' => '{language}', 'where' => ['language' => 'vi|en']], function () {
+Route::group(['prefix' => '{language}'], function () {
     Route::get('/',function(){
         return view('frontend.pages.index');
     });
@@ -16,3 +16,8 @@ Route::group(['prefix' => '{language}', 'where' => ['language' => 'vi|en']], fun
         return view('frontend.pages.about');
     });
 });
+
+Route::get('/',function(){
+    return view('frontend.pages.index');
+});
+
