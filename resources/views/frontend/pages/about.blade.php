@@ -15,7 +15,6 @@
                         {{ __('HQ Group mong muốn tìm kiếm những “New Start-up” - Tổ chức có đam mê, khát vọng, trí tuệ để định hướng, đồng hành và phát triển.') }}
                     </div>
                     <div>
-
                         {{ __('Cùng với sự phát triển của tổ chức, HQ Group đặc biệt chú trọng phát triển đội ngũ nhân sự - tài sản quan trọng nhất của doanh nghiệp, để cùng chia sẻ những cơ hội và lợi ích trong tương lai.') }}
                     </div>
 
