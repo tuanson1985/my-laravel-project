@@ -17,18 +17,21 @@ class LanguageMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (in_array($request->segment(1), ['vi', 'en'])) {
-            $segment_one = $request->segment(1);
-            Session::put('locale', $segment_one);
-            config(['app.locale' => $segment_one]);
+        // Lấy segment đầu tiên của URL
+        $segment_one = $request->segment(1);
+
+        // Kiểm tra xem segment đầu tiên có phải là một mã ngôn ngữ hợp lệ
+        if (!in_array($segment_one, ['vi', 'en'])) {
+            // Lấy ngôn ngữ từ session hoặc config (ngôn ngữ mặc định)
             $language = Session::get('locale', config('app.locale'));
 
-            App::setLocale($language);
-            return $next($request);
+            // Redirect người dùng đến URL có ngôn ngữ
+            return redirect("/{$language}/" . $request->path());
         }
 
-        $language = Session::get('locale', config('app.locale'));
-        App::setLocale($language);
+        // Nếu URL đã có ngôn ngữ, thiết lập lại session và config
+        Session::put('locale', $segment_one);
+        App::setLocale($segment_one);
 
         return $next($request);
     }

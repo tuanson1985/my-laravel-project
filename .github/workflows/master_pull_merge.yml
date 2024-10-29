@@ -1,0 +1,127 @@
+name: Deploy Hub HQWG
+
+on:
+  push:
+    branches: [ "master" ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      # - uses: shivammathur/setup-php@v2
+      #   with:
+      #     php-version: '8.12.3'
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: Create .env
+        run: |
+          echo 'APP_NAME=${{ secrets.APP_NAME }}' >> .env
+          echo 'APP_ENV=${{ secrets.APP_ENV }}' >> .env
+          echo 'APP_KEY=${{ secrets.APP_KEY }}' >> .env
+          echo 'APP_DEBUG=false' >> .env
+          echo 'APP_TIMEZONE=${{ secrets.APP_TIMEZONE }}' >> .env
+          echo 'APP_URL=${{ secrets.APP_URL }}' >> .env
+          echo 'APP_LOCALE=${{ secrets.APP_LOCALE }}' >> .env
+          echo 'APP_FALLBACK_LOCALE=${{ secrets.APP_FALLBACK_LOCALE }}' >> .env
+          echo 'APP_FAKER_LOCALE=${{ secrets.APP_FAKER_LOCALE }}' >> .env
+          echo 'APP_MAINTENANCE_DRIVER=${{ secrets.APP_MAINTENANCE_DRIVER }}' >> .env
+          echo 'APP_MAINTENANCE_STORE=${{ secrets.APP_MAINTENANCE_STORE }}' >> .env
+          echo 'BCRYPT_ROUNDS=${{ secrets.BCRYPT_ROUNDS }}' >> .env
+          echo 'LOG_CHANNEL=${{ secrets.LOG_CHANNEL }}' >> .env
+          echo 'LOG_STACK=${{ secrets.LOG_STACK }}' >> .env
+          echo 'LOG_DEPRECATIONS_CHANNEL=null' >> .env
+          echo 'DB_CONNECTION=${{ secrets.DB_CONNECTION }}' >> .env
+          echo 'DB_HOST=${{ secrets.DB_HOST }}' >> .env
+          echo 'DB_PORT=${{ secrets.DB_PORT }}' >> .env
+          echo 'DB_DATABASE=${{ secrets.DB_DATABASE }}' >> .env
+          echo 'DB_USERNAME=${{ secrets.DB_USERNAME }}' >> .env
+          echo 'DB_PASSWORD=${{ secrets.DB_PASSWORD }}' >> .env
+          echo 'SESSION_DRIVER=${{ secrets.SESSION_DRIVER }}' >> .env
+          echo 'SESSION_LIFETIME=${{ secrets.SESSION_LIFETIME }}' >> .env
+          echo 'SESSION_ENCRYPT=false' >> .env
+          echo 'SESSION_PATH=/' >> .env
+          echo 'SESSION_DOMAIN=null' >> .env
+          echo 'BROADCAST_CONNECTION=${{ secrets.BROADCAST_CONNECTION }}' >> .env
+          echo 'FILESYSTEM_DISK=${{ secrets.FILESYSTEM_DISK }}' >> .env
+          echo 'QUEUE_CONNECTION=${{ secrets.QUEUE_CONNECTION }}' >> .env
+          echo 'CACHE_STORE=${{ secrets.CACHE_STORE }}' >> .env
+          echo 'CACHE_PREFIX=' >> .env
+          echo 'MEMCACHED_HOST=${{ secrets.MEMCACHED_HOST }}' >> .env
+          echo 'REDIS_CLIENT=${{ secrets.REDIS_CLIENT }}' >> .env
+          echo 'REDIS_HOST=${{ secrets.REDIS_HOST }}' >> .env
+          echo 'REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}' >> .env
+          echo 'REDIS_PORT=${{ secrets.REDIS_PORT }}' >> .env
+          echo 'MAIL_MAILER=${{ secrets.MAIL_MAILER }}' >> .env
+          echo 'MAIL_HOST=${{ secrets.MAIL_HOST }}' >> .env
+          echo 'MAIL_PORT=${{ secrets.MAIL_PORT }}' >> .env
+          echo 'MAIL_USERNAME=null' >> .env
+          echo 'MAIL_PASSWORD=null' >> .env
+          echo 'MAIL_ENCRYPTION=null' >> .env
+          echo 'MAIL_FROM_ADDRESS=${{ secrets.MAIL_FROM_ADDRESS }}' >> .env
+          echo 'MAIL_FROM_NAME=${{ secrets.MAIL_FROM_NAME }}' >> .env
+          echo 'AWS_ACCESS_KEY_ID=' >> .env
+          echo 'AWS_SECRET_ACCESS_KEY=' >> .env
+          echo 'AWS_DEFAULT_REGION=${{ secrets.AWS_DEFAULT_REGION }}' >> .env
+          echo 'AWS_BUCKET=' >> .env
+          echo 'AWS_USE_PATH_STYLE_ENDPOINT=false' >> .env
+          echo 'VITE_APP_NAME=${{ secrets.VITE_APP_NAME }}' >> .env
+      # - name: Get composer cache directory
+      #   id: composer-cache
+      #   run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+      # - name: Cache dependencies
+      #   uses: actions/cache@v4
+      #   with:
+      #     path: ${{ steps.composer-cache.outputs.dir }}
+      #     key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.json') }}
+      #     restore-keys: ${{ runner.os }}-composer-
+      # - name: Install dependencies
+      #   run: |
+      #     composer update --ignore-platform-req=ext-sodium
+      # - name: Install Dependencies
+      #   run:
+      #     composer update --ignore-platform-reqs
+      #     composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+      # - name: Create deployment artifact
+      #   env:
+      #     GITHUB_SHA: ${{ github.sha }}
+      #   run: tar -czf "${GITHUB_SHA}".tar.gz --exclude=*.git --exclude=node_modules *
+      # - name: Store artifact for distribution
+      #   uses: actions/upload-artifact@v3
+      #   with:
+      #     name: app-build
+      #     path: ${{ github.sha }}.tar.gz
+      - name: Telegram - notice process begin
+        run: |
+          curl -X POST \
+            -H 'Content-Type: application/json' \
+            -d '{"chat_id": "${{ secrets.TELEGRAM_DEPLOYMENT_CHANNEL_ID }}", "text": "ðŸš€ Báº¯t Ä‘áº§u deploy code HUB HQWG", "disable_notification": false}' \
+            https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh/
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.PUBLIC_IP }} >> ~/.ssh/known_hosts
+      - name: Deploy to Server
+        run: |
+          rsync -azr --delete --exclude .git --exclude .vscode --exclude .github -e "ssh -i ~/.ssh/id_rsa" ./ root@${{ secrets.PUBLIC_IP }}:/home/testsshHYam/test-ssh.tichhop.pro/public_html
+          ssh -i ~/.ssh/id_rsa root@${{ secrets.PUBLIC_IP }} 'cd /home/testsshHYam/test-ssh.tichhop.pro/public_html && mkdir -p storage/framework/{sessions,views,cache} && chown -R www-data:www-data * && composer update'
+          ssh -i ~/.ssh/id_rsa root@${{ secrets.PUBLIC_IP }} 'cd /home/testsshHYam/test-ssh.tichhop.pro/public_html && chown -R www-data:www-data * && php artisan config:cache && php artisan route:cache'
+          ssh -i ~/.ssh/id_rsa root@${{ secrets.PUBLIC_IP }} 'pkill nginx && sleep 1 && systemctl start nginx'
+      - name: Telegram - notice process finished
+        run: |
+          curl -X POST \
+            -H 'Content-Type: application/json' \
+            -d '{"chat_id": "${{ secrets.TELEGRAM_DEPLOYMENT_CHANNEL_ID }}", "text": "âœ… QuÃ¡ trÃ¬nh deploy HUB HQWG Ä‘Ã£ hoÃ n táº¥t.", "disable_notification": false}' \
+            https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage
+  failure:
+    needs: [deploy]
+    runs-on: ubuntu-latest
+    if: ${{ failure() }}
+    steps:
+      - run: |
+          curl -X POST \
+            -H 'Content-Type: application/json' \
+            -d '{"chat_id": "${{ secrets.TELEGRAM_DEPLOYMENT_CHANNEL_ID }}", "text": "ðŸ¥µ Lá»—i deploy code web HUB HQWG. Lá»—i cÃ³ thá»ƒ gÃ¢y ra váº¥n Ä‘á» kho tá»•ng bá»‹ sáº­p, cÃ¡c thá»‹ trÆ°á»ng khÃ´ng thá»ƒ láº¥y hÃ ng Ä‘Æ°á»£c. Cáº§n gáº¥p rÃºt kiá»ƒm tra\nLá»—i chá»§ yáº¿u do:\n- service nginx bá»‹ lá»—i\n- lá»—i permission\n\nCÃ¡ch fix lá»—i serivce nginx\n1. ssh vÃ o server\n2. nginx -t\n3. killall nginx\n4. systemctl start nginx\n\nCÃ¡ch fix lá»—i permission\n- chown -R www-data:www-data /var/www/hub-hqwg/*", "disable_notification": false}' \
+            https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage
