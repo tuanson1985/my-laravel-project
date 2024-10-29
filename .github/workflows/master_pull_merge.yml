@@ -1,46 +1,78 @@
-name: Deploy to Server
+name: Deploy Hub HQWG
 
 on:
   push:
-    branches:
-      - main  # Hoặc nhánh bạn muốn theo dõi
+    branches: [ "main" ]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-
-      - name: Set up SSH
-        uses: webfactory/ssh-agent@v0.5.3
+      # - uses: shivammathur/setup-php@v2
+      #   with:
+      #     php-version: '7.4'
+      - uses: actions/checkout@v4
         with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-
-      - name: Deploy to server
+          fetch-depth: 1
+      - name: Create .env
         run: |
-          # Tạo file .env từ bí mật
-          echo "APP_NAME=${{ secrets.APP_NAME }}" > .env
-          echo "APP_ENV=${{ secrets.APP_ENV }}" >> .env
-          echo "APP_KEY=${{ secrets.APP_KEY }}" >> .env
-          echo "APP_URL=${{ secrets.APP_URL }}" >> .env
-          # Thêm các biến môi trường khác vào .env nếu cần
 
-          # Copy mã nguồn lên server
-          rsync -avz --delete ./ user@${{ secrets.PUBLIC_IP }}:/home/testsshHYam/test-ssh.tichhop.pro/public_html
-
-          # SSH vào server để chạy lệnh cập nhật
-          ssh user@${{ secrets.PUBLIC_IP }} << 'EOF'
-            cd /home/testsshHYam/test-ssh.tichhop.pro/public_html
-            composer install --no-dev --optimize-autoloader
-            php artisan migrate --force
-            php artisan config:cache
-            php artisan route:cache
-            php artisan view:cache
-            # Khởi động lại NGINX nếu cần
-            sudo systemctl restart nginx
-          EOF
-
-          # Gửi thông báo lên Telegram
-          curl -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage" -d "chat_id=${{ secrets.TELEGRAM_DEPLOYMENT_CHANNEL_ID }}" -d "text=Deployment completed successfully."
+      # - name: Get composer cache directory
+      #   id: composer-cache
+      #   run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+      # - name: Cache dependencies
+      #   uses: actions/cache@v4
+      #   with:
+      #     path: ${{ steps.composer-cache.outputs.dir }}
+      #     key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.json') }}
+      #     restore-keys: ${{ runner.os }}-composer-
+      # - name: Install dependencies
+      #   run: |
+      #     composer update --ignore-platform-req=ext-sodium
+      # - name: Install Dependencies
+      #   run:
+      #     composer update --ignore-platform-reqs
+      #     composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+      # - name: Create deployment artifact
+      #   env:
+      #     GITHUB_SHA: ${{ github.sha }}
+      #   run: tar -czf "${GITHUB_SHA}".tar.gz --exclude=*.git --exclude=node_modules *
+      # - name: Store artifact for distribution
+      #   uses: actions/upload-artifact@v3
+      #   with:
+      #     name: app-build
+      #     path: ${{ github.sha }}.tar.gz
+      - name: Telegram - notice process begin
+        run: |
+          curl -X POST \
+            -H 'Content-Type: application/json' \
+            -d '{"chat_id": "${{ secrets.TELEGRAM_DEPLOYMENT_CHANNEL_ID }}", "text": "ðŸš€ Báº¯t Ä‘áº§u deploy code HUB HQWG", "disable_notification": false}' \
+            https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh/
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.PUBLIC_IP }} >> ~/.ssh/known_hosts
+      - name: Deploy to Server
+        run: |
+          rsync -azr --delete --exclude .git --exclude .vscode --exclude .github -e "ssh -i ~/.ssh/id_rsa" ./ root@${{ secrets.PUBLIC_IP }}:/home/testsshHYam/test-ssh.tichhop.pro/public_html
+          ssh -i ~/.ssh/id_rsa root@${{ secrets.PUBLIC_IP }} 'cd /home/testsshHYam/test-ssh.tichhop.pro/public_html && mkdir -p storage/framework/{sessions,views,cache} && chown -R www-data:www-data * && composer update'
+          ssh -i ~/.ssh/id_rsa root@${{ secrets.PUBLIC_IP }} 'cd /home/testsshHYam/test-ssh.tichhop.pro/public_html && chown -R www-data:www-data * && php artisan config:cache && php artisan route:cache'
+          ssh -i ~/.ssh/id_rsa root@${{ secrets.PUBLIC_IP }} 'pkill nginx && sleep 1 && systemctl start nginx'
+      - name: Telegram - notice process finished
+        run: |
+          curl -X POST \
+            -H 'Content-Type: application/json' \
+            -d '{"chat_id": "${{ secrets.TELEGRAM_DEPLOYMENT_CHANNEL_ID }}", "text": "âœ… QuÃ¡ trÃ¬nh deploy HUB HQWG Ä‘Ã£ hoÃ n táº¥t.", "disable_notification": false}' \
+            https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage
+  failure:
+    needs: [deploy]
+    runs-on: ubuntu-latest
+    if: ${{ failure() }}
+    steps:
+      - run: |
+          curl -X POST \
+            -H 'Content-Type: application/json' \
+            -d '{"chat_id": "${{ secrets.TELEGRAM_DEPLOYMENT_CHANNEL_ID }}", "text": "ðŸ¥µ Lá»—i deploy code web HUB HQWG. Lá»—i cÃ³ thá»ƒ gÃ¢y ra váº¥n Ä‘á» kho tá»•ng bá»‹ sáº­p, cÃ¡c thá»‹ trÆ°á»ng khÃ´ng thá»ƒ láº¥y hÃ ng Ä‘Æ°á»£c. Cáº§n gáº¥p rÃºt kiá»ƒm tra\nLá»—i chá»§ yáº¿u do:\n- service nginx bá»‹ lá»—i\n- lá»—i permission\n\nCÃ¡ch fix lá»—i serivce nginx\n1. ssh vÃ o server\n2. nginx -t\n3. killall nginx\n4. systemctl start nginx\n\nCÃ¡ch fix lá»—i permission\n- chown -R www-data:www-data /var/www/hub-hqwg/*", "disable_notification": false}' \
+            https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage
