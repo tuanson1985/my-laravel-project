@@ -1,37 +1,20 @@
-name: Deploy Hub HQWG
+name: Laravel Simple CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
 jobs:
-  deploy:
+  test:
     runs-on: ubuntu-latest
+
     steps:
-      # - uses: shivammathur/setup-php@v2
-      #   with:
-      #     php-version: '7.4'
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
-      - name: Telegram - notice process begin
-        run: |
-          curl -X POST \
-            -H 'Content-Type: application/json' \
-            -d '{"chat_id": "${{ secrets.TELEGRAM_DEPLOYMENT_CHANNEL_ID }}", "text": "ðŸš€ Báº¯t Ä‘áº§u deploy code HUB HQWG", "disable_notification": false}' \
-            https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage
-      - name: Telegram - notice process finished
-        run: |
-          curl -X POST \
-            -H 'Content-Type: application/json' \
-            -d '{"chat_id": "${{ secrets.TELEGRAM_DEPLOYMENT_CHANNEL_ID }}", "text": "âœ… QuÃ¡ trÃ¬nh deploy HUB HQWG Ä‘Ã£ hoÃ n táº¥t.", "disable_notification": false}' \
-            https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage
-  failure:
-    needs: [deploy]
-    runs-on: ubuntu-latest
-    if: ${{ failure() }}
-    steps:
-      - run: |
-          curl -X POST \
-            -H 'Content-Type: application/json' \
-            -d '{"chat_id": "${{ secrets.TELEGRAM_DEPLOYMENT_CHANNEL_ID }}", "text": "ðŸ¥µ Lá»—i deploy code web HUB HQWG. Lá»—i cÃ³ thá»ƒ gÃ¢y ra váº¥n Ä‘á» kho tá»•ng bá»‹ sáº­p, cÃ¡c thá»‹ trÆ°á»ng khÃ´ng thá»ƒ láº¥y hÃ ng Ä‘Æ°á»£c. Cáº§n gáº¥p rÃºt kiá»ƒm tra\nLá»—i chá»§ yáº¿u do:\n- service nginx bá»‹ lá»—i\n- lá»—i permission\n\nCÃ¡ch fix lá»—i serivce nginx\n1. ssh vÃ o server\n2. nginx -t\n3. killall nginx\n4. systemctl start nginx\n\nCÃ¡ch fix lá»—i permission\n- chown -R www-data:www-data /var/www/hub-hqwg/*", "disable_notification": false}' \
-            https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Run tests
+        run: php artisan test
