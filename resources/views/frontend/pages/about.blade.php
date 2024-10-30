@@ -5,7 +5,7 @@
         <div class="opportunity aos-init aos-animate" data-aos="fade-up" id="traocohoi">
             <div class="container">
                 <div class="opportunity_title">
-                    {{ __('TRAO CƠ HỘI CHO CHÚNG TÔI VÀ BẠN') }}
+                    {{ __('TRAO CƠ HỘI CHO CHÚNG TÔI VÀ BẠN 2') }}
                 </div>
                 <div class="opportunity_content">
                     <div>
