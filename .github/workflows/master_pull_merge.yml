@@ -47,3 +47,34 @@ jobs:
         echo 'MAIL_FROM_ADDRESS=hello@example.com' >> .env
         echo 'MAIL_FROM_NAME=APP_NAME' >> .env
         echo 'VITE_APP_NAME=${{ secrets.APP_NAME }}' >> .env
+    # - name: Get composer cache directory
+    #   id: composer-cache
+    #   run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+    # - name: Cache dependencies
+    #   uses: actions/cache@v4
+    #   with:
+    #     path: ${{ steps.composer-cache.outputs.dir }}
+    #     key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.json') }}
+    #     restore-keys: ${{ runner.os }}-composer-
+    # - name: Install dependencies
+    #   run: |
+    #     composer update --ignore-platform-req=ext-sodium
+    # - name: Install Dependencies
+    #   run:
+    #     composer update --ignore-platform-reqs
+    #     composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+    # - name: Create deployment artifact
+    #   env:
+    #     GITHUB_SHA: ${{ github.sha }}
+    #   run: tar -czf "${GITHUB_SHA}".tar.gz --exclude=*.git --exclude=node_modules *
+    # - name: Store artifact for distribution
+    #   uses: actions/upload-artifact@v3
+    #   with:
+    #     name: app-build
+    #     path: ${{ github.sha }}.tar.gz
+    - name: Telegram - notice process begin
+      run: |
+        curl -X POST \
+          -H 'Content-Type: application/json' \
+          -d '{"chat_id": "${{ secrets.TELEGRAM_DEPLOYMENT_CHANNEL_ID }}", "text": "🚀 Bắt đầu deploy code HUB HQWG", "disable_notification": false}' \
+          https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage
