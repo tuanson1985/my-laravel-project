@@ -9,7 +9,6 @@
                 </div>
                 <div class="opportunity_content">
                     <div>
-                        
                         {{ __('HQ Group là tập đoàn đầu tư, hoạt động trong đa lĩnh vực, luôn khát vọng đổi mới song hành cùng sự phát triển bền vững.') }}
                     </div>
                     <div>
