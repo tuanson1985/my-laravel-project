@@ -86,7 +86,7 @@ jobs:
         ssh-keyscan -t ed25519 -p ${{ secrets.SSH_PORT }} -H ${{ secrets.PUBLIC_IP }} >> ~/.ssh/known_hosts
     - name: Deploy to Server
       run: |
-        rsync -azr --delete --exclude .git --exclude .vscode --exclude .github -e "ssh -i ~/.ssh/id_rsa_son -p ${{ secrets.SSH_PORT }}" ./ root@${{ secrets.PUBLIC_IP }}:/home/testsshHYam/test-ssh.tichhop.pro/public_html
+        rsync -azr --delete --exclude .github -e "ssh -i ~/.ssh/id_rsa_son -p ${{ secrets.SSH_PORT }}" ./ root@${{ secrets.PUBLIC_IP }}:/home/testsshHYam/test-ssh.tichhop.pro/public_html
         ssh -i ~/.ssh/id_rsa_son -p ${{ secrets.SSH_PORT }} root@${{ secrets.PUBLIC_IP }} 'cd /home/testsshHYam/test-ssh.tichhop.pro/public_html && mkdir -p storage/framework/{sessions,views,cache} && chown -R www-data:www-data * && COMPOSER_ALLOW_SUPERUSER=1 composer update'
         ssh -i ~/.ssh/id_rsa_son -p ${{ secrets.SSH_PORT }} root@${{ secrets.PUBLIC_IP }} 'cd /home/testsshHYam/test-ssh.tichhop.pro/public_html && chown -R www-data:www-data * && php artisan config:cache && php artisan route:cache'
         ssh -i ~/.ssh/id_rsa_son -p ${{ secrets.SSH_PORT }} root@${{ secrets.PUBLIC_IP }} 'pkill nginx && sleep 1 && systemctl start nginx'
