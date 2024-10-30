@@ -76,5 +76,11 @@ jobs:
       run: |
         curl -X POST \
           -H 'Content-Type: application/json' \
-          -d '{"chat_id": "${{ secrets.TELEGRAM_DEPLOYMENT_CHANNEL_ID }}", "text": "🚀 Bắt đầu deploy code HUB HQWG", "disable_notification": false}' \
+          -d '{"chat_id": "${{ secrets.TELEGRAM_DEPLOYMENT_CHANNEL_ID }}", "text": "🚀 Bắt đầu deploy code DAILY", "disable_notification": false}' \
           https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage
+    - name: Cấu hình SSH
+      run: |
+        mkdir -p ~/.ssh/
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan -t ed25519 -p ${{ secrets.SSH_PORT }} -H ${{ secrets.PUBLIC_IP }} >> ~/.ssh/known_hosts
