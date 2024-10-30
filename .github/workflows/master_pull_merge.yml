@@ -84,3 +84,19 @@ jobs:
         echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
         ssh-keyscan -t ed25519 -p ${{ secrets.SSH_PORT }} -H ${{ secrets.PUBLIC_IP }} >> ~/.ssh/known_hosts
+    - name: Telegram - notice process finished
+      run: |
+        curl -X POST \
+          -H 'Content-Type: application/json' \
+          -d '{"chat_id": "${{ secrets.TELEGRAM_DEPLOYMENT_CHANNEL_ID }}", "text": "✅ Quá trình deploy HUB HQWG đã hoàn tất.", "disable_notification": false}' \
+          https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage
+  failure:
+    needs: [deploy]
+    runs-on: ubuntu-latest
+    if: ${{ failure() }}
+    steps:
+      - run: |
+          curl -X POST \
+            -H 'Content-Type: application/json' \
+            -d '{"chat_id": "${{ secrets.TELEGRAM_DEPLOYMENT_CHANNEL_ID }}", "text": "🥵 Lỗi deploy code web HUB HQWG. Lỗi có thể gây ra vấn đề kho tổng bị sập, các thị trường không thể lấy hàng được. Cần gấp rút kiểm tra\nLỗi chủ yếu do:\n- service nginx bị lỗi\n- lỗi permission\n\nCách fix lỗi serivce nginx\n1. ssh vào server\n2. nginx -t\n3. killall nginx\n4. systemctl start nginx\n\nCách fix lỗi permission\n- chown -R www-data:www-data /var/www/hub-hqwg/*", "disable_notification": false}' \
+            https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage
