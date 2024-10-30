@@ -81,15 +81,15 @@ jobs:
     - name: Cấu hình SSH
       run: |
         mkdir -p ~/.ssh/
-        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
-        chmod 600 ~/.ssh/id_ed25519
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
         ssh-keyscan -t ed25519 -p ${{ secrets.SSH_PORT }} -H ${{ secrets.PUBLIC_IP }} >> ~/.ssh/known_hosts
     - name: Deploy to Server
       run: |
-        rsync -azr --delete --exclude .github -e "ssh -i ~/.ssh/id_ed25519 -p ${{ secrets.SSH_PORT }}" ./ root@${{ secrets.PUBLIC_IP }}:/home/testsshHYam/test-ssh.tichhop.pro/public_html
-        ssh -i ~/.ssh/id_ed25519 -p ${{ secrets.SSH_PORT }} root@${{ secrets.PUBLIC_IP }} 'cd /home/testsshHYam/test-ssh.tichhop.pro/public_html && mkdir -p storage/framework/{sessions,views,cache} && chown -R www-data:www-data * && COMPOSER_ALLOW_SUPERUSER=1 composer update'
-        ssh -i ~/.ssh/id_ed25519 -p ${{ secrets.SSH_PORT }} root@${{ secrets.PUBLIC_IP }} 'cd /home/testsshHYam/test-ssh.tichhop.pro/public_html && chown -R www-data:www-data * && php artisan config:cache && php artisan route:cache'
-        ssh -i ~/.ssh/id_ed25519 -p ${{ secrets.SSH_PORT }} root@${{ secrets.PUBLIC_IP }} 'pkill nginx && sleep 1 && systemctl start nginx'
+        rsync -azr --delete --exclude .github -e "ssh -i ~/.ssh/id_rsa -p ${{ secrets.SSH_PORT }}" ./ root@${{ secrets.PUBLIC_IP }}:/home/testsshHYam/test-ssh.tichhop.pro/public_html
+        ssh -i ~/.ssh/id_rsa -p ${{ secrets.SSH_PORT }} root@${{ secrets.PUBLIC_IP }} 'cd /home/testsshHYam/test-ssh.tichhop.pro/public_html && mkdir -p storage/framework/{sessions,views,cache} && chown -R www-data:www-data * && COMPOSER_ALLOW_SUPERUSER=1 composer update'
+        ssh -i ~/.ssh/id_rsa -p ${{ secrets.SSH_PORT }} root@${{ secrets.PUBLIC_IP }} 'cd /home/testsshHYam/test-ssh.tichhop.pro/public_html && chown -R www-data:www-data * && php artisan config:cache && php artisan route:cache'
+        ssh -i ~/.ssh/id_rsa -p ${{ secrets.SSH_PORT }} root@${{ secrets.PUBLIC_IP }} 'pkill nginx && sleep 1 && systemctl start nginx'
     - name: Telegram - notice process finished
       run: |
         curl -X POST \
